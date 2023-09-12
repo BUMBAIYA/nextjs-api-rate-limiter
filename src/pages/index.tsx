@@ -9,7 +9,9 @@ export default function Home() {
   );
 
   const makeRequest = async () => {
-    const res = await fetch("/api/user");
+    const res = await fetch("/api/user", {
+      cache: "no-cache",
+    });
 
     setResponse({
       status: res.status,
