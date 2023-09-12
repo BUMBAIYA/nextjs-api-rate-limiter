@@ -15,13 +15,9 @@ const limiter = rateLimit({
       userUuidToken = uuidv4();
       res.setHeader(
         "Set-Cookie",
-        `userUuid=${userUuidToken}; Max-Age=${60 * 60 * 24}; SameSite=Strict`
-      );
-      res.setHeader(
-        "Set-Cookie",
-        `userIp=${req.socket.remoteAddress}; Max-Age=${
-          60 * 60 * 24
-        }; SameSite=Strict`
+        `userUuid=${userUuidToken}; Max-Age=${60 * 60 * 24};userIp=${
+          req.socket.remoteAddress
+        }; Max-Age=${60 * 60 * 24}; SameSite=Strict`
       );
     }
     return userUuidToken;
