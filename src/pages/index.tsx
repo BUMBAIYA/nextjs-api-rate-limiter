@@ -41,7 +41,7 @@ export default function Home() {
         </button>
       </div>
       {response && (
-        <code className="block rounded-lg p-4 w-full text-white bg-zinc-950">
+        <code className="block rounded-lg overflow-x-scroll p-4 w-full text-white bg-zinc-950">
           <pre>{JSON.stringify(response, null, 2)}</pre>
         </code>
       )}
