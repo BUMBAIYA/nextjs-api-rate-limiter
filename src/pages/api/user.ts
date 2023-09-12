@@ -2,21 +2,40 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 import rateLimit from "@/utils/rateLimit";
 
-const DEFAULT_TOKEN = "DEFAULT_TOKEN" as const;
+const REQUEST_PER_HOUR = 5 as const;
+const RATELIMIT_DURATION = 3600000 as const;
+const MAX_USER_PER_SECOND = 100 as const;
 
 const limiter = rateLimit({
-  interval: 60 * 1000, // 60 seconds
-  uniqueTokenPerInterval: 500, // Max 500 users per second
+  interval: RATELIMIT_DURATION,
+  uniqueTokenPerInterval: MAX_USER_PER_SECOND,
+  getUserId: (req: NextApiRequest, res: NextApiResponse) => {
+    let userUuidToken = req.cookies.userUuid;
+    if (!userUuidToken) {
+      userUuidToken = uuidv4();
+      res.setHeader(
+        "Set-Cookie",
+        `userUuid=${userUuidToken}; Max-Age=${60 * 60 * 24}; SameSite=Strict`
+      );
+    }
+    return userUuidToken;
+  },
 });
 
 export default async function handler(
-  _req: NextApiRequest,
+  req: NextApiRequest,
   res: NextApiResponse
 ) {
   try {
-    await limiter.check(res, 10, DEFAULT_TOKEN); // 10 requests per minute
-    res.status(200).json({ id: uuidv4() });
-  } catch {
-    res.status(429).json({ error: "Rate limit exceeded" });
+    const data = await limiter.check(res, req, REQUEST_PER_HOUR);
+    res
+      .status(data.status)
+      .json({ status: data.status, message: data.message });
+  } catch (error: any) {
+    if (error?.status === 429) {
+      res.status(429).json({ status: 429, message: "Rate limit exceeded" });
+    } else {
+      res.status(500).json({ status: 500, message: error });
+    }
   }
 }
