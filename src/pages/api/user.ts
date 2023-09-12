@@ -28,6 +28,7 @@ export default async function handler(
 ) {
   try {
     const data = await limiter.check(res, req, REQUEST_PER_HOUR);
+    res.setHeader("Cache-Control", "no-cache");
     res
       .status(data.status)
       .json({ status: data.status, message: data.message });
